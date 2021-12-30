@@ -1,6 +1,7 @@
 
 package com.mikhail_golovackii.developmentTeams;
 
+import com.mikhail_golovackii.developmentTeams.databaseConnetction.DatabaseConnectionSingletonImpl;
 import com.mikhail_golovackii.developmentTeams.view.DeveloperView;
 import com.mikhail_golovackii.developmentTeams.view.SkillView;
 import com.mikhail_golovackii.developmentTeams.view.TeamView;
@@ -28,6 +29,7 @@ public class Main {
             System.out.println("2: show: developer, skill or team");
             System.out.println("3: update: developer, skill or team");
             System.out.println("4: delete: developer, skill or team");
+            System.out.println("5: customization database");
             System.out.println("exit: exit the application");
             
             System.out.println("input: ");
@@ -145,6 +147,15 @@ public class Main {
                             System.out.println("Element not created");
                             break;    
                     }
+                    break;
+                case "5":
+                    System.out.println("Enter user database:");
+                    check = scanner.nextLine();
+                    DatabaseConnectionSingletonImpl.getInstance().setUser(check);
+                    
+                    System.out.println("Enter user password:");
+                    check = scanner.nextLine();
+                    DatabaseConnectionSingletonImpl.getInstance().setUser(check);
                     break;
                 case "exit":
                     System.out.println("Bye!");
