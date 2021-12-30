@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - include:
+      file: src/main/resources/db/changelog/changeset/create-team.yaml
+  - include:
+      file: src/main/resources/db/changelog/changeset/create-developer.yaml
+  - include:
+      file: src/main/resources/db/changelog/changeset/create-skill.yaml
+  - include:
+      file: src/main/resources/db/changelog/changeset/create-developer_skills.yaml
+  - include:
+      file: src/main/resources/db/changelog/changeset/create-developers_team.yaml

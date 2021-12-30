@@ -1,0 +1,25 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-developer_skills
+      author: Mikhail Golovackii
+      changes:
+        - createTable:
+            tableName: developer_skills
+            columns:
+              - column:
+                  name: developer_id
+                  type: int
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_developer_id_from_developer_skills
+                    references: developer(id)
+                    onDelete:  CASCADE
+              - column:
+                  name: skill_id
+                  type: int
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_skill_id
+                    references: skill(id)
+                    onDelete:  CASCADE
+

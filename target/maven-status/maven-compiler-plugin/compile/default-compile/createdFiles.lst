@@ -1,0 +1,8 @@
+com/mikhail_golovackii/developmentTeams/model/Skill.class
+com/mikhail_golovackii/developmentTeams/repository/DeveloperRepository.class
+com/mikhail_golovackii/developmentTeams/model/TeamStatus.class
+com/mikhail_golovackii/developmentTeams/repository/impl/DeveloperRepositoryImpl.class
+com/mikhail_golovackii/developmentTeams/repository/SkillRepository.class
+com/mikhail_golovackii/developmentTeams/model/Developer.class
+com/mikhail_golovackii/developmentTeams/repository/TeamRepository.class
+com/mikhail_golovackii/developmentTeams/model/Team.class

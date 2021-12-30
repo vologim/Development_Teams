@@ -1,0 +1,22 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-skill
+      author: Mikhail Golovackii
+      changes:
+        - createTable:
+            tableName: skill
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+                    unique: true 
+                    

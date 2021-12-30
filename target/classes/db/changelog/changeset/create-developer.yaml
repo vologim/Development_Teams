@@ -1,0 +1,26 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-developer
+      author: Mikhail Golovackii
+      changes:
+        - createTable:
+            tableName: developer
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: first_name
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_name
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              

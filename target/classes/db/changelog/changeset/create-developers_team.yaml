@@ -1,0 +1,24 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-developers_team
+      author: Mikhail Golovackii
+      changes:
+        - createTable:
+            tableName: developers_team
+            columns:
+              - column:
+                  name: developer_id
+                  type: int
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_developer_id_from_developers_team
+                    references: developer(id)
+                    onDelete:  CASCADE
+              - column:
+                  name: team_id
+                  type: int
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_team_id
+                    references: skill(id)
+                    onDelete:  CASCADE
