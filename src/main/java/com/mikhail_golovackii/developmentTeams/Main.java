@@ -164,57 +164,7 @@ public class Main {
                     break;  
             }
         }
-        
-        
-        
-        
-        ///////////////////////////////////////     developer WORKING
-        //// getAll developers working
-//        DeveloperRepository dev = new DeveloperRepositoryImpl();
-//        List<Developer> developers = dev.getAll();
-//        developers.stream().forEach(elem -> System.out.println(elem));
-        
-        // update working
-//        List<Skill> skills = new ArrayList<>();
-//        skills.add(new Skill("Java"));
-//        skills.add(new Skill("MySQL"));
-//        skills.add(new Skill("Hibernate"));
-//        skills.add(new Skill("JDBC"));
-//        Developer developer = new Developer("Misha", "Golovackii", skills);
-//        dev.update(25, developer);
 
-        // getId developer woking
-//        System.out.println(dev.getId(25));
-        
-        // delete developer working
-//        dev.deleteId(22);
-
-        // save developer
-//        List<Skill> skills = new ArrayList<>();
-//        skills.add(new Skill("Java"));
-//        skills.add(new Skill("MySql"));
-//        dev.save(new Developer("Misha", "Golovackii", skills));
-        
-        ///////////////////////////////////////     skill WORKING
-        
-//        SkillRepository skillRepository = new SkillRepositoryImpl();
-        
-        // get all skill working
-//        System.out.println(skillRepository.getAll());
-        
-        // get skill for name working
-//        System.out.println(skillRepository.getSkill("JavA"));
-
-        //create skill working
-//        skillRepository.create("PHP");
-        
-        //update skill working
-//        skillRepository.update("PHP", "PHP");
-        
-        //delete skill working
-//        skillRepository.deleteId("2");
     }
-
-    
-    
+  
 }
