@@ -7,7 +7,6 @@ import com.mikhail_golovackii.developmentTeams.service.DeveloperService;
 import com.mikhail_golovackii.developmentTeams.service.Impl.DeveloperServiceImpl;
 import java.util.List;
 
-
 public class DeveloperControllerImpl implements DeveloperController {
     
     private final DeveloperService service = new DeveloperServiceImpl();

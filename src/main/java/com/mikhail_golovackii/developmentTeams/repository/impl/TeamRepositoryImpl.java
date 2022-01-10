@@ -1,83 +1,57 @@
 
 package com.mikhail_golovackii.developmentTeams.repository.impl;
 
-import com.mikhail_golovackii.developmentTeams.databaseConnetction.DatabaseConnectionSingletonImpl;
+import com.mikhail_golovackii.developmentTeams.utils.DBConnectionSingleton;
 import com.mikhail_golovackii.developmentTeams.model.Developer;
 import com.mikhail_golovackii.developmentTeams.model.Team;
 import com.mikhail_golovackii.developmentTeams.repository.DeveloperRepository;
 import com.mikhail_golovackii.developmentTeams.repository.TeamRepository;
+import com.mikhail_golovackii.developmentTeams.utils.TeamQueries;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-
 public class TeamRepositoryImpl implements TeamRepository {
-
-    private DatabaseConnectionSingletonImpl DBConnection = DatabaseConnectionSingletonImpl.getInstance();
-    private Statement statement = null;
-    private ResultSet resultSet = null;
-    private String query;
-    private DeveloperRepository developerRepository = new DeveloperRepositoryImpl();
     
     @Override
     public void save(Team team) {
         
-        try {
+        if (team.getId() == 0) {
+            saveNewTeam(team);
+            team.setId(getLastIdTeam());
+        }
+        else {
+            saveTeam(team);
+        }
+        
+        Set<Developer> developersFromTeam = new HashSet<>(team.getDevelopers());
+        if (!developersFromTeam.isEmpty() || developersFromTeam != null) {
             
-            int teamId = 0;
-            statement = DBConnection.getConnection().createStatement();
-            if (team.getId() == 0){
-                query = "INSERT INTO team (name) "
-                        + "VALUE ('" + team.getName() + "')";
-                statement.executeUpdate(query);
+            DeveloperRepository developerRepository = new DeveloperRepositoryImpl();
+            
+            List<Developer> developersFromDB = developerRepository.getAll();
+            Developer developer;
+            String query;
+            
+            for (Developer elem : developersFromTeam) {
+                developer = developersFromDB.stream()
+                        .filter(dev -> dev.equals(elem))
+                        .findFirst()
+                        .orElse(null);
 
-                query = "SELECT id FROM team ORDER BY id DESC LIMIT 1";
-                statement = DBConnection.getConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-                resultSet = statement.executeQuery(query);
-                resultSet.first();
-                teamId = resultSet.getInt("id");
-            }
-            else {
-                teamId = team.getId();
-                query = "INSERT INTO team (id, name) "
-                        + "VALUE ('" + teamId + "', '" + team.getName() + "')";
-                statement.executeUpdate(query);
-            }
-
-            Set<Developer> developersFromTeam = new HashSet<>(team.getDevelopers());
-            if (!developersFromTeam.isEmpty() || developersFromTeam != null){
-                
-                List<Developer> developersFromDB = developerRepository.getAll();
-                Developer developer;
-                
-                for (Developer elem : developersFromTeam){
-                    developer = developersFromDB.stream()
-                                                .filter(dev -> dev.equals(elem))
-                                                .findFirst()
-                                                .orElse(null);
-                    
-                    if (developer != null){
-                        query = "INSERT INTO developers_team VALUE (" + elem.getId() + ", " + teamId + ")";
-                        statement.executeUpdate(query);
+                if (developer != null) {
+                    query = TeamQueries.insertDevelopersTeamQuery(developer.getId(), team.getId());
+                    try(PreparedStatement statement = DBConnectionSingleton.preparedStatement(query)) {
+                        statement.executeUpdate();
+                    } catch (SQLException ex) {
+                        ex.printStackTrace();
                     }
                 }
-            }
-        }
-        catch (SQLException ex){
-            ex.printStackTrace();
-        }
-        finally { 
-            try {
-                statement.close();
-                resultSet.close();
-            }
-            catch (SQLException ex) {
-                ex.printStackTrace();
             }
         }
     }
@@ -106,13 +80,11 @@ public class TeamRepositoryImpl implements TeamRepository {
 
     @Override
     public List<Team> getAll() {
-        
         List<Team> teams = new ArrayList<>();
+        String query = TeamQueries.getAllTeamsQuery();
         
-        try {            
-            statement = DBConnection.getConnection().createStatement();
-            query = "SELECT * FROM team";
-            resultSet = statement.executeQuery(query);
+        try(PreparedStatement statement = DBConnectionSingleton.preparedStatement(query)) {            
+            ResultSet resultSet = statement.executeQuery(query);
             
             while (resultSet.next()){
                 Team team = new Team();
@@ -122,14 +94,10 @@ public class TeamRepositoryImpl implements TeamRepository {
                 teams.add(team);
             }
             
-            query = "SELECT team.id, developer.id FROM team"
-                    + " JOIN developers_team"
-                    + " ON developers_team.team_id = team.id"
-                    + " JOIN developer"
-                    + " ON developers_team.developer_id = developer.id";
-            
+            query = TeamQueries.getAllDevelopersAndTeam();
             resultSet = statement.executeQuery(query);
             
+            DeveloperRepository developerRepository = new DeveloperRepositoryImpl();
             List<Developer> developers = developerRepository.getAll();
             Optional<Team> team;
             Developer developer;
@@ -152,37 +120,52 @@ public class TeamRepositoryImpl implements TeamRepository {
         catch (SQLException ex){
             ex.printStackTrace();
         }
-        finally{
-            try {
-                statement.close();
-                resultSet.close();
-            }
-            catch (SQLException ex) {
-                ex.printStackTrace();
-            }
-        }
-
         return teams;
     }
 
     @Override
     public void deleteId(int id) {
-        try {
-            statement = DBConnection.getConnection().createStatement();
-            query = "DELETE FROM team WHERE id = " + id;
+        String query = TeamQueries.deleteTeamQuery(id);
+        
+        try(PreparedStatement statement = DBConnectionSingleton.preparedStatement(query)) {
             statement.executeUpdate(query);
         }
         catch (SQLException ex){
             ex.printStackTrace();
         }
-        finally{
-            try {
-                statement.close();
-            }
-            catch (SQLException ex) {
-                ex.printStackTrace();
-            }
+    }
+
+    private void saveNewTeam(Team team) {
+        String query = TeamQueries.insertTeamWithoutIdQuery(team);
+        
+        try(PreparedStatement statement = DBConnectionSingleton.preparedStatement(query)) {
+            statement.executeUpdate();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
         }
     }
 
+    private void saveTeam(Team team) {
+        String query = TeamQueries.insertTeamWithIdQuery(team);
+        
+        try(PreparedStatement statement = DBConnectionSingleton.preparedStatement(query)) {
+            statement.executeUpdate();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private int getLastIdTeam() {
+        int teamId = -1;
+        String query = TeamQueries.getLastIdTeamQuery();
+        
+        try (PreparedStatement statement = DBConnectionSingleton.preparedStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY)) {
+            ResultSet resultSet = statement.executeQuery(query);
+            resultSet.first();
+            teamId = resultSet.getInt("id");
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return teamId;
+    }
 }
