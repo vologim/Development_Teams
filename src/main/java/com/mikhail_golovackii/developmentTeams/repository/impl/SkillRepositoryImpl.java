@@ -50,13 +50,21 @@ public class SkillRepositoryImpl implements SkillRepository {
     }
 
     @Override
-    public Skill getSkill(String skill) {
-        Optional<Skill> skillName = getAll().stream()
-                                  .filter(elem -> elem.getName().toLowerCase().equals(skill.toLowerCase()))
-                                  .findFirst();
+    public Skill getSkill(String skillName) {
+        Skill skill = new Skill();
+        String query = SkillQueries.getSkillByNameQuery(skillName);
         
-        if (skillName.isPresent()){
-            return skillName.get();
+        try (PreparedStatement statement = DBConnectionSingleton.preparedStatement(query);
+             ResultSet resultSet = statement.executeQuery()) {
+            
+            while (resultSet.next()) {
+                skill.setId(resultSet.getInt(1));
+                skill.setName(resultSet.getString(2));
+            }
+            
+            return skill;
+        } catch (SQLException ex) {
+            ex.printStackTrace();
         }
         
         return null;

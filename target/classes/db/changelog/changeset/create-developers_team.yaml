@@ -20,5 +20,5 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                     foreignKeyName: fk_team_id
-                    references: skill(id)
+                    references: team(id)
                     onDelete:  CASCADE

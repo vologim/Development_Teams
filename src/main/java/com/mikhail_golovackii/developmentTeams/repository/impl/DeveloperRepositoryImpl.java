@@ -21,11 +21,10 @@ public class DeveloperRepositoryImpl implements DeveloperRepository {
     public void save(Developer developer) {
         
         if (developer.getId() == 0) {
-            saveNewDeveloper(developer);
-            developer.setId(getLastIdDeveloper());
+            developer = saveNewDeveloper(developer);
         } 
         else {
-            saveDeveloper(developer);
+            developer = saveDeveloper(developer);
         }
 
         List<Skill> skillsFromDeveloper = developer.getSkills();
@@ -81,12 +80,42 @@ public class DeveloperRepositoryImpl implements DeveloperRepository {
 
     @Override
     public Developer getId(int id) {
-        Optional<Developer> developer = getAll().stream()
-                .filter(elem -> elem.getId() == id)
-                .findFirst();
+        String query = DeveloperQueries.getDeveloperByIdQuery(id);
+        Developer developer = new Developer();
+        
+        try(PreparedStatement statement = DBConnectionSingleton.preparedStatement(query);
+            ResultSet resultSet = statement.executeQuery()) {
+            
+            while (resultSet.next()) {
+                developer.setId(resultSet.getInt(1));
+                developer.setFirstName(resultSet.getString(2));
+                developer.setLastName(resultSet.getString(3));
+            }
 
-        if (developer.isPresent()) {
-            return developer.get();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        
+        query = DeveloperQueries.getSkillsDeveloperById(id);
+        try(PreparedStatement statement = DBConnectionSingleton.preparedStatement(query);
+            ResultSet resultSet = statement.executeQuery(query)) {
+
+            List<Skill> skills = new ArrayList<>();
+            
+            while (resultSet.next()) {
+                Skill skill = new Skill();
+                
+                skill.setId(resultSet.getInt("id"));
+                skill.setName(resultSet.getString("name"));
+                
+                skills.add(skill);
+            }
+            
+            developer.setSkills(skills);
+            
+            return developer;
+        } catch (SQLException ex) {
+            ex.printStackTrace();
         }
 
         return null;
@@ -97,8 +126,8 @@ public class DeveloperRepositoryImpl implements DeveloperRepository {
         List<Developer> developers = new ArrayList<>();
         String query = DeveloperQueries.getAllDevelopersQuery();
         
-        try(PreparedStatement statement = DBConnectionSingleton.preparedStatement(query)) {
-            ResultSet resultSet = statement.executeQuery(query);
+        try(PreparedStatement statement = DBConnectionSingleton.preparedStatement(query);
+            ResultSet resultSet = statement.executeQuery(query)) {
 
             while (resultSet.next()) {
                 Developer developer = new Developer();
@@ -109,8 +138,13 @@ public class DeveloperRepositoryImpl implements DeveloperRepository {
                 developers.add(developer);
             }
 
-            query = DeveloperQueries.getAllDeveloperAndSkillsQuery();
-            resultSet = statement.executeQuery(query);
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        
+        query = DeveloperQueries.getAllDeveloperAndSkillsQuery();
+        try (PreparedStatement statement = DBConnectionSingleton.preparedStatement(query);  
+             ResultSet resultSet = statement.executeQuery(query)) {
 
             while (resultSet.next()) {
                 Skill skill = new Skill();
@@ -130,6 +164,7 @@ public class DeveloperRepositoryImpl implements DeveloperRepository {
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
+        
         return developers;
     }
 
@@ -144,17 +179,29 @@ public class DeveloperRepositoryImpl implements DeveloperRepository {
         }
     }
 
-    private void saveNewDeveloper(Developer developer) {
+    private Developer saveNewDeveloper(Developer developer) {
         String query = DeveloperQueries.insertDeveloperWithoutIdQuery(developer);
+        int developerId = 0;
 
-        try ( PreparedStatement statement = DBConnectionSingleton.preparedStatement(query)) {
-            statement.executeUpdate();
+        try (PreparedStatement statement = DBConnectionSingleton.preparedStatement(query)) {
+            statement.executeUpdate(query, statement.RETURN_GENERATED_KEYS);
+            
+            try (ResultSet resultSet = statement.getGeneratedKeys()) {
+                if (resultSet.next()) {
+                developerId = resultSet.getInt(1);
+                developer.setId(developerId);
+                }
+            } catch (SQLException ex) {
+            ex.printStackTrace();
+            }
+            
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
+        return developer;
     }
 
-    private void saveDeveloper(Developer developer) {
+    private Developer saveDeveloper(Developer developer) {
         String query = DeveloperQueries.insertDeveloperWithIdQuery(developer);
 
         try (PreparedStatement statement = DBConnectionSingleton.preparedStatement(query)) {
@@ -162,19 +209,6 @@ public class DeveloperRepositoryImpl implements DeveloperRepository {
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
-    }
-
-    private int getLastIdDeveloper() {
-        int developerId = -1;
-        String query = DeveloperQueries.getLastIdDeveloperQuery();
-        
-        try (PreparedStatement statement = DBConnectionSingleton.preparedStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY)) {
-            ResultSet resultSet = statement.executeQuery(query);
-            resultSet.first();
-            developerId = resultSet.getInt("id");
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
-        return developerId;
+        return developer;
     }
 }

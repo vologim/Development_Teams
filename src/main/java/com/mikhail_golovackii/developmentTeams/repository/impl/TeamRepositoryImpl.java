@@ -22,11 +22,10 @@ public class TeamRepositoryImpl implements TeamRepository {
     public void save(Team team) {
         
         if (team.getId() == 0) {
-            saveNewTeam(team);
-            team.setId(getLastIdTeam());
+            team = saveNewTeam(team);
         }
         else {
-            saveTeam(team);
+            team = saveTeam(team);
         }
         
         Set<Developer> developersFromTeam = new HashSet<>(team.getDevelopers());
@@ -72,10 +71,44 @@ public class TeamRepositoryImpl implements TeamRepository {
 
     @Override
     public Team getId(int id) {
-        Optional<Team> team = getAll().stream().filter(elem -> elem.getId() == id)
-                                               .findAny();
+        Team team = new Team();
+        String query = TeamQueries.getTeamById(id);
         
-        return team.orElse(null);
+        try (PreparedStatement statement = DBConnectionSingleton.preparedStatement(query);
+             ResultSet resultSet = statement.executeQuery()) {
+            
+            while (resultSet.next()) {
+                team.setId(resultSet.getInt("id"));
+                team.setName(resultSet.getString("name"));
+            }
+        } catch (SQLException ex){
+            ex.printStackTrace();
+        }
+
+        query = TeamQueries.getTeamDevelopersById(id);
+        try (PreparedStatement statement = DBConnectionSingleton.preparedStatement(query);
+             ResultSet resultSet = statement.executeQuery()) {
+            
+            List<Developer> developers = new ArrayList<>();
+            
+            while (resultSet.next()) {
+                Developer developer = new Developer();
+                
+                developer.setId(resultSet.getInt(1));
+                developer.setFirstName(resultSet.getString(2));
+                developer.setLastName(resultSet.getString(3));
+                
+                developers.add(developer);
+            }
+            
+            team.setDevelopers(developers);
+            return team;
+            
+        } catch (SQLException ex){
+            ex.printStackTrace();
+        }
+        
+        return null;
     }
 
     @Override
@@ -116,8 +149,7 @@ public class TeamRepositoryImpl implements TeamRepository {
                     team.get().addDeveloper(developer);
                 }
             }
-        }
-        catch (SQLException ex){
+        } catch (SQLException ex){
             ex.printStackTrace();
         }
         return teams;
@@ -129,13 +161,12 @@ public class TeamRepositoryImpl implements TeamRepository {
         
         try(PreparedStatement statement = DBConnectionSingleton.preparedStatement(query)) {
             statement.executeUpdate(query);
-        }
-        catch (SQLException ex){
+        } catch (SQLException ex){
             ex.printStackTrace();
         }
     }
 
-    private void saveNewTeam(Team team) {
+    private Team saveNewTeam(Team team) {
         String query = TeamQueries.insertTeamWithoutIdQuery(team);
         
         try(PreparedStatement statement = DBConnectionSingleton.preparedStatement(query)) {
@@ -143,9 +174,10 @@ public class TeamRepositoryImpl implements TeamRepository {
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
+        return team;
     }
 
-    private void saveTeam(Team team) {
+    private Team saveTeam(Team team) {
         String query = TeamQueries.insertTeamWithIdQuery(team);
         
         try(PreparedStatement statement = DBConnectionSingleton.preparedStatement(query)) {
@@ -153,19 +185,6 @@ public class TeamRepositoryImpl implements TeamRepository {
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
-    }
-
-    private int getLastIdTeam() {
-        int teamId = -1;
-        String query = TeamQueries.getLastIdTeamQuery();
-        
-        try (PreparedStatement statement = DBConnectionSingleton.preparedStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY)) {
-            ResultSet resultSet = statement.executeQuery(query);
-            resultSet.first();
-            teamId = resultSet.getInt("id");
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
-        return teamId;
+        return team;
     }
 }

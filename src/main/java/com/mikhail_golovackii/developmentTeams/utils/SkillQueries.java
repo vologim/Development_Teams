@@ -12,6 +12,10 @@ public class SkillQueries {
         return String.format("UPDATE skill SET name = ('%s') WHERE id = %d;", skill.getName(), skill.getId());
     }
     
+    public static String getSkillByNameQuery(String skillName) {
+        return String.format("SELECT * FROM skill WHERE name = ('%s');", skillName);
+    }
+    
     public static String getAllSkillsQuery() {
         return "SELECT * FROM skill ORDER BY id;";
     }

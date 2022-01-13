@@ -1,6 +1,7 @@
 
 package com.mikhail_golovackii.developmentTeams.model;
 
+import com.mikhail_golovackii.developmentTeams.model.Developer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;

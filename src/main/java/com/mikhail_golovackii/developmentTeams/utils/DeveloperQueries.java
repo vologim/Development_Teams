@@ -14,16 +14,25 @@ public class DeveloperQueries {
                 + "VALUE ('%d', '%s', '%s');", developer.getId(), developer.getFirstName(), developer.getLastName());
     }
 
-    public static String getLastIdDeveloperQuery() {
-        return "SELECT id FROM developer ORDER BY id DESC LIMIT 1;";
-    }
-
     public static String insertDeveloperSkillsQuery(int developerId, int skillId) {
         return String.format("INSERT INTO developer_skills VALUE (%d, %d);", developerId, skillId);
     }
 
+    public static String getDeveloperByIdQuery(int id) {
+        return String.format("SELECT * FROM developer WHERE id = %d;", id);
+    }
+    
     public static String getAllDevelopersQuery() {
         return "SELECT * FROM developer;";
+    }
+    
+    public static String getSkillsDeveloperById(int id) {
+        return String.format("SELECT skill.* FROM skill"
+                + " JOIN developer_skills"
+                + " ON developer_skills.skill_id = skill.id"
+                + " JOIN developer"
+                + " ON developer_skills.developer_id = developer.id"
+                + " WHERE developer.id = %d", id);
     }
 
     public static String getAllDeveloperAndSkillsQuery() {
