@@ -1,6 +1,7 @@
 # Development team
 
-Console CRUD application that interacts with the database 
+Console CRUD application that interacts with the database
+
 Entities:
 - Team (id, name, List<Developer> developers)
 - Developer (id, firstName, lastName, List<Skill> skills)
